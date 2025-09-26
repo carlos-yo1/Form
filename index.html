@@ -172,15 +172,8 @@
       });
 
       if (resp.ok) {
-        const ct = resp.headers.get('content-type') || '';
-        let message = 'Formulário enviado com sucesso!';
-        if (ct.includes('application/json')) {
-          const json = await resp.json().catch(()=>null);
-          if (json && json.message) message = json.message;
-        } else {
-          const text = await resp.text().catch(()=>null);
-          if (text) message = text;
-        }
+        // Mensagem personalizada após envio
+        const message = 'Obrigado! Seus dados foram enviados com sucesso. Em breve entraremos em contato.';
         alert(message);
         form.reset();
       } else {
