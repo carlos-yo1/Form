@@ -174,7 +174,7 @@
 
       if (resp.ok) {
         // Redireciona para página de obrigado
-        window.location.href = obrigadoUrl;
+        window.top.location.href = obrigadoUrl;
       } else {
         const errText = await resp.text().catch(()=> '');
         alert('Erro no envio: ' + resp.status + ' ' + resp.statusText + (errText ? ' — ' + errText : ''));
@@ -238,3 +238,4 @@
     margin: 0;
   }
 </style>
+
