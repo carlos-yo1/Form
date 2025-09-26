@@ -110,6 +110,7 @@
   const form = document.getElementById('roi-form');
   const btn = document.getElementById('btn-calcular-roi');
   const webhookUrl = "https://mcp.laboratoriodaleao.com.br/webhook/orbit-simulador-lp001";
+  const obrigadoUrl = "https://comunicacao.orbitlog.com.br/obrigado";
 
   function sanitizeNumber(value) {
     if (value === null || value === undefined) return null;
@@ -172,10 +173,8 @@
       });
 
       if (resp.ok) {
-        // Mensagem personalizada após envio
-        const message = 'Obrigado! Seus dados foram enviados com sucesso. Em breve entraremos em contato.';
-        alert(message);
-        form.reset();
+        // Redireciona para página de obrigado
+        window.location.href = obrigadoUrl;
       } else {
         const errText = await resp.text().catch(()=> '');
         alert('Erro no envio: ' + resp.status + ' ' + resp.statusText + (errText ? ' — ' + errText : ''));
