@@ -193,7 +193,7 @@
             console.warn('Redirecionamento falhou, usando fallback...', err);
             window.location.href = obrigadoUrl;
           }
-        }, 3000);
+        }, 2000);
 
       } else {
         const errText = await resp.text().catch(()=> '');
@@ -258,3 +258,4 @@
     margin: 0;
   }
 </style>
+
