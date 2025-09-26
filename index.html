@@ -51,7 +51,7 @@
           <path d="M2 21a7 7 0 0 1 14 0M12 21a7 7 0 0 1 14 0"/>
         </svg>
       </span>
-      <input type="number" id="input-analistas" name="analistas" required placeholder="Ex: 3" min="0" step="1" class="input-field">
+      <input type="number" id="input-analistas" name="analistas" required placeholder="Ex: 3" min="1" step="1" class="input-field">
     </div>
 
     <!-- Salário anual -->
@@ -63,7 +63,7 @@
           <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/>
         </svg>
       </span>
-      <input type="number" id="input-salario-anual" name="salario_anual" required placeholder="Ex: R$ 30.000 (se souber o mensal, multiplique por 12)" min="0" step="0.01" class="input-field">
+      <input type="text" id="input-salario-anual" name="salario_anual" required placeholder="Ex: R$ 30.000,00" class="input-field">
     </div>
 
     <!-- Tempo digitando -->
@@ -89,7 +89,7 @@
           <path d="M4 4l8 8 8-8"/>
         </svg>
       </span>
-      <input type="number" id="input-pedidos-email" name="pedidos_email" required placeholder="Ex: 200" min="0" step="1" class="input-field">
+      <input type="number" id="input-pedidos-email" name="pedidos_email" required placeholder="Ex: 200" min="1" step="1" class="input-field">
     </div>
 
     <!-- Taxa de erro -->
@@ -140,12 +140,14 @@
   }
 
   function buildPayload(fd) {
+    const salarioRaw = fd.get('salario_anual') || '';
+    const salarioNum = Number(salarioRaw.replace(/[R$\s.]/g,'').replace(',', '.'));
     return {
       nome: fd.get('nome') || '',
       email: fd.get('email') || '',
       whatsapp: fd.get('whatsapp') || '',
       analistas: sanitizeNumber(fd.get('analistas')),
-      salario_anual: sanitizeNumber(fd.get('salario_anual')),
+      salario_anual: salarioNum > 0 ? salarioNum : null,
       tempo_digitando: sanitizeNumber(fd.get('tempo_digitando')),
       pedidos_email: sanitizeNumber(fd.get('pedidos_email')),
       taxa_erro: sanitizeNumber(fd.get('taxa_erro'))
@@ -161,11 +163,14 @@
     const fd = new FormData(form);
     const payload = buildPayload(fd);
 
-    if (!payload.nome || !payload.email) {
-      alert('Preencha nome e e-mail.');
-      btn.disabled = false;
-      btn.innerText = originalText;
-      return;
+    // validação campos obrigatórios
+    for (let key in payload) {
+      if (payload[key] === null || payload[key] === '') {
+        alert('Por favor, preencha todos os campos corretamente.');
+        btn.disabled = false;
+        btn.innerText = originalText;
+        return;
+      }
     }
 
     try {
@@ -204,8 +209,8 @@
   // --- Máscara WhatsApp ---
   const whatsappInput = document.getElementById("input-whatsapp");
   whatsappInput.addEventListener("input", function(e) {
-    let v = e.target.value.replace(/\D/g, ""); // remove tudo que não é número
-    if (v.length > 11) v = v.slice(0,11); // limita 11 dígitos
+    let v = e.target.value.replace(/\D/g, "");
+    if (v.length > 11) v = v.slice(0,11);
 
     if (v.length > 6) {
       e.target.value = `(${v.slice(0,2)}) ${v.slice(2,v.length-4)}-${v.slice(v.length-4)}`;
@@ -214,6 +219,16 @@
     } else if (v.length > 0) {
       e.target.value = `(${v}`;
     }
+  });
+
+  // --- Máscara Salário BRL ---
+  const salarioInput = document.getElementById("input-salario-anual");
+  salarioInput.addEventListener("input", function(e) {
+    let v = e.target.value.replace(/\D/g,''); 
+    v = (Number(v)/100).toFixed(2) + '';
+    v = v.replace('.', ',');
+    v = v.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    e.target.value = 'R$ ' + v;
   });
 
 })();
@@ -236,7 +251,6 @@
     box-shadow: 0 0 3px rgba(249,115,22,0.6);
   }
 
-  /* Remove setas do number */
   input[type=number]::-webkit-inner-spin-button,
   input[type=number]::-webkit-outer-spin-button {
     -webkit-appearance: none;
