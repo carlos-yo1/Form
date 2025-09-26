@@ -1,0 +1,150 @@
+<div style="max-width: 500px; margin: auto; background: #ffffff; padding: 25px; border-radius: 8px; font-family: Arial, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+  
+  <form id="roi-form">
+
+    <!-- Nome -->
+    <label for="input-nome" style="display:block; margin-bottom: 8px; font-weight: bold;">Seu Nome</label>
+    <div style="position: relative; margin-bottom: 18px;">
+      <span style="position:absolute; top:50%; left:12px; transform:translateY(-50%);">
+        <!-- Ícone usuário -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <circle cx="12" cy="7" r="4"/>
+          <path d="M5.5 21a7.5 7.5 0 0 1 13 0"/>
+        </svg>
+      </span>
+      <input type="text" id="input-nome" name="nome" required placeholder="Ex: João Silva" class="input-field">
+    </div>
+
+    <!-- Email -->
+    <label for="input-email" style="display:block; margin-bottom: 8px; font-weight: bold;">Seu melhor E-mail</label>
+    <div style="position: relative; margin-bottom: 18px;">
+      <span style="position:absolute; top:50%; left:12px; transform:translateY(-50%);">
+        <!-- Ícone email -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M4 4h16v16H4z"/>
+          <path d="M4 4l8 8 8-8"/>
+        </svg>
+      </span>
+      <input type="email" id="input-email" name="email" required placeholder="Ex: seu.email@email.com" class="input-field">
+    </div>
+
+    <!-- WhatsApp -->
+    <label for="input-whatsapp" style="display:block; margin-bottom: 8px; font-weight: bold;">Seu número de celular</label>
+    <div style="position: relative; margin-bottom: 18px;">
+      <span style="position:absolute; top:50%; left:12px; transform:translateY(-50%);">
+        <!-- Ícone telefone -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M22 16.9v3a2 2 0 0 1-2.2 2c-9.6-.5-17.3-8.2-17.8-17.8a2 2 0 0 1 2-2.2h3a2 2 0 0 1 2 1.7c.2 1.2.6 2.3 1.1 3.3a2 2 0 0 1-.5 2.2l-1.3 1.3a16 16 0 0 0 6.4 6.4l1.3-1.3a2 2 0 0 1 2.2-.5c1 .5 2.1.9 3.3 1.1a2 2 0 0 1 1.7 2z"/>
+        </svg>
+      </span>
+      <input type="tel" id="input-whatsapp" name="whatsapp" required placeholder="Ex: (11) 99999-9999" class="input-field">
+    </div>
+
+    <!-- Quantidade de analistas -->
+    <label for="input-analistas" style="display:block; margin-bottom: 8px; font-weight: bold;">Quantidade de analistas no processo de entrada manual de pedidos</label>
+    <div style="position: relative; margin-bottom: 18px;">
+      <span style="position:absolute; top:50%; left:12px; transform:translateY(-50%);">
+        <!-- Ícone pessoas -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <circle cx="9" cy="7" r="4"/>
+          <circle cx="19" cy="7" r="4"/>
+          <path d="M2 21a7 7 0 0 1 14 0M12 21a7 7 0 0 1 14 0"/>
+        </svg>
+      </span>
+      <input type="number" id="input-analistas" name="analistas" required placeholder="Ex: 3" class="input-field">
+    </div>
+
+    <!-- Salário anual -->
+    <label for="input-salario-anual" style="display:block; margin-bottom: 8px; font-weight: bold;">Salário anual dos analistas</label>
+    <div style="position: relative; margin-bottom: 18px;">
+      <span style="position:absolute; top:50%; left:12px; transform:translateY(-50%);">
+        <!-- Ícone dinheiro -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/>
+        </svg>
+      </span>
+      <input type="number" id="input-salario-anual" name="salario_anual" required placeholder="Ex: R$ 30.000 (se souber o mensal, multiplique por 12)" class="input-field">
+    </div>
+
+    <!-- Tempo digitando -->
+    <label for="input-tempo-digitando" style="display:block; margin-bottom: 8px; font-weight: bold;">Porcentagem (%) média do tempo gasto digitando pedidos</label>
+    <div style="position: relative; margin-bottom: 18px;">
+      <span style="position:absolute; top:50%; left:12px; transform:translateY(-50%);">
+        <!-- Ícone relógio -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+      </span>
+      <input type="number" id="input-tempo-digitando" name="tempo_digitando" required placeholder="Ex: 40%" class="input-field">
+    </div>
+
+    <!-- Pedidos por email -->
+    <label for="input-pedidos-email" style="display:block; margin-bottom: 8px; font-weight: bold;">Quantidade/mês de pedidos recebidos por email</label>
+    <div style="position: relative; margin-bottom: 18px;">
+      <span style="position:absolute; top:50%; left:12px; transform:translateY(-50%);">
+        <!-- Ícone email aberto -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M4 4h16v16H4z"/>
+          <path d="M4 4l8 8 8-8"/>
+        </svg>
+      </span>
+      <input type="number" id="input-pedidos-email" name="pedidos_email" required placeholder="Ex: 200" class="input-field">
+    </div>
+
+    <!-- Taxa de erro -->
+    <label for="input-taxa-erro" style="display:block; margin-bottom: 8px; font-weight: bold;">Taxa de erro devido à entrada manual (% de pedidos com erro)</label>
+    <div style="position: relative; margin-bottom: 22px;">
+      <span style="position:absolute; top:50%; left:12px; transform:translateY(-50%);">
+        <!-- Ícone alerta -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12" y2="16"/>
+        </svg>
+      </span>
+      <input type="number" id="input-taxa-erro" name="taxa_erro" required placeholder="Ex: 5%" class="input-field">
+    </div>
+
+    <!-- Botão CTA -->
+    <button type="submit" id="btn-calcular-roi"
+      style="width: 100%; background: rgb(249,115,22); color: #fff; font-size: 16px; font-weight: bold; padding: 14px; border: none; border-radius: 6px; cursor: pointer; transition: background 0.3s;">
+      Quero Calcular meu ROI
+    </button>
+
+  </form>
+</div>
+
+<!-- Extras -->
+<style>
+  .input-field {
+    width: 100%;
+    padding: 12px 12px 12px 42px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: border 0.3s;
+    -moz-appearance: textfield;
+  }
+
+  .input-field:focus {
+    border: 1px solid rgb(249,115,22);
+    outline: none;
+    box-shadow: 0 0 3px rgba(249,115,22,0.6);
+  }
+
+  /* Remove setas */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+</style>
+
+<!-- CTA -->
+<script>
+  document.getElementById("btn-calcular-roi").addEventListener("click", function(e) {
+    e.preventDefault();
+    alert("Formulário enviado! (Aqui vai sua ação)");
+  });
+</script>
