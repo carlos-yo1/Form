@@ -113,6 +113,111 @@
     </button>
 
   </form>
+  
+<!-- Ajustes recomendados nos inputs: adicione min/step/max conforme abaixo (aplique no HTML) -->
+<!-- exemplo para analistas: <input type="number" id="input-analistas" name="analistas" required placeholder="Ex: 3" min="0" step="1" class="input-field"> -->
+
+<script>
+(function(){
+  const form = document.getElementById('roi-form');
+  const btn = document.getElementById('btn-calcular-roi');
+  const webhookUrl = "https://mcp.laboratoriodaleao.com.br/webhook/orbit-simulador-lp001";
+
+  function sanitizeNumber(value) {
+    if (value === null || value === undefined) return null;
+    let v = String(value).trim();
+    if (!v) return null;
+    // remove tudo exceto dígitos, pontos, vírgulas e sinal de menos
+    v = v.replace(/[^0-9.,-]/g,'');
+    if (v === '') return null;
+
+    // Converter formatos BR (ex: "1.234,56") -> "1234.56"
+    if (v.indexOf('.') !== -1 && v.indexOf(',') !== -1) {
+      // supondo que '.' são milhares e ',' decimais
+      if (v.lastIndexOf('.') < v.lastIndexOf(',')) {
+        v = v.replace(/\./g,'').replace(',', '.');
+      } else {
+        // caso inverso, remove vírgulas
+        v = v.replace(/,/g,'');
+      }
+    } else if (v.indexOf(',') !== -1) {
+      v = v.replace(',', '.');
+    }
+    const num = Number(v);
+    return Number.isFinite(num) ? num : null;
+  }
+
+  function buildPayload(fd) {
+    return {
+      nome: fd.get('nome') || '',
+      email: fd.get('email') || '',
+      whatsapp: fd.get('whatsapp') || '',
+      analistas: sanitizeNumber(fd.get('analistas')),
+      salario_anual: sanitizeNumber(fd.get('salario_anual')),
+      tempo_digitando: sanitizeNumber(fd.get('tempo_digitando')), // percent (ex: 40)
+      pedidos_email: sanitizeNumber(fd.get('pedidos_email')),
+      taxa_erro: sanitizeNumber(fd.get('taxa_erro')) // percent
+    };
+  }
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    btn.disabled = true;
+    const originalText = btn.innerText;
+    btn.innerText = 'Enviando...';
+
+    const fd = new FormData(form);
+    const payload = buildPayload(fd);
+
+    // Checagem simples
+    if (!payload.nome || !payload.email) {
+      alert('Preencha nome e e-mail.');
+      btn.disabled = false;
+      btn.innerText = originalText;
+      return;
+    }
+
+    try {
+      const resp = await fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'cors', // padrão, deixa explícito
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (resp.ok) {
+        // tenta ler JSON, se não houver, usa texto padrão
+        const ct = resp.headers.get('content-type') || '';
+        let message = 'Formulário enviado com sucesso!';
+        if (ct.includes('application/json')) {
+          const json = await resp.json().catch(()=>null);
+          if (json && json.message) message = json.message;
+        } else {
+          const text = await resp.text().catch(()=>null);
+          if (text) message = text;
+        }
+        alert(message);
+        form.reset();
+      } else {
+        const errText = await resp.text().catch(()=> '');
+        alert('Erro no envio: ' + resp.status + ' ' + resp.statusText + (errText ? ' — ' + errText : ''));
+      }
+    } catch (err) {
+      console.error('Erro fetch:', err);
+      // Possível CORS ou network error
+      alert('Erro de conexão. Verifique o console (F12) — pode ser bloqueio CORS ou problema de rede.');
+      // fallback opcional: enviar mensagem para a página pai pedir proxy
+      // window.parent.postMessage({ type: 'form-submission', payload }, '*');
+    } finally {
+      btn.disabled = false;
+      btn.innerText = originalText;
+    }
+  });
+})();
+</script>
+  
 </div>
 
 <!-- Extras -->
@@ -141,10 +246,4 @@
   }
 </style>
 
-<!-- CTA -->
-<script>
-  document.getElementById("btn-calcular-roi").addEventListener("click", function(e) {
-    e.preventDefault();
-    alert("Formulário enviado! (Aqui vai sua ação)");
-  });
-</script>
+
