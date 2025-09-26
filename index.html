@@ -138,7 +138,7 @@
       email: fd.get('email') || '',
       whatsapp: fd.get('whatsapp') || '',
       analistas: sanitizeNumber(fd.get('analistas')),
-      salario_anual: salarioBRL, // string BRL com pontos e vírgula
+      salario_anual: salarioBRL,
       tempo_digitando: sanitizeNumber(fd.get('tempo_digitando')),
       pedidos_email: sanitizeNumber(fd.get('pedidos_email')),
       taxa_erro: sanitizeNumber(fd.get('taxa_erro'))
@@ -173,8 +173,19 @@
       });
 
       if (resp.ok) {
-        // Redireciona para página de obrigado
-        window.top.location.href = obrigadoUrl;
+        // Delay de 3 segundos antes de redirecionar
+        setTimeout(() => {
+          try {
+            if (window.top !== window.self) {
+              window.top.location.href = obrigadoUrl;
+            } else {
+              window.location.href = obrigadoUrl;
+            }
+          } catch (err) {
+            console.warn('Redirecionamento falhou, usando fallback...', err);
+            window.location.href = obrigadoUrl;
+          }
+        }, 3000);
       } else {
         const errText = await resp.text().catch(()=> '');
         alert('Erro no envio: ' + resp.status + ' ' + resp.statusText + (errText ? ' — ' + errText : ''));
@@ -216,26 +227,25 @@
 </script>
 
 <style>
-  .input-field {
-    width: 100%;
-    padding: 12px 12px 12px 42px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 15px;
-    transition: border 0.3s;
-    -moz-appearance: textfield;
-  }
+.input-field {
+  width: 100%;
+  padding: 12px 12px 12px 42px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 15px;
+  transition: border 0.3s;
+  -moz-appearance: textfield;
+}
 
-  .input-field:focus {
-    border: 1px solid rgb(249,115,22);
-    outline: none;
-    box-shadow: 0 0 3px rgba(249,115,22,0.6);
-  }
+.input-field:focus {
+  border: 1px solid rgb(249,115,22);
+  outline: none;
+  box-shadow: 0 0 3px rgba(249,115,22,0.6);
+}
 
-  input[type=number]::-webkit-inner-spin-button,
-  input[type=number]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 </style>
-
