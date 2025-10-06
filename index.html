@@ -111,11 +111,20 @@
   </form>
   
 <script>
-(function(){
+document.addEventListener('DOMContentLoaded', function () {
   const form = document.getElementById('roi-form');
+  if (!form) { console.warn('Form não encontrado: #roi-form'); return; }
+
   const btn = document.getElementById('btn-calcular-roi');
+  const whatsappInput = document.getElementById('input-whatsapp');
+  const salarioInput = document.getElementById('input-salario-anual');
   const webhookUrl = "https://hook.us1.make.com/6q9bv53gwg861xpgb6xv76gr5dv8wewf";
   const obrigadoUrl = "https://comunicacao.orbitlog.com.br/obrigado";
+
+  // segurança: checar elementos essenciais
+  if (!btn) { console.warn('Botão não encontrado: #btn-calcular-roi'); }
+  if (!whatsappInput) { console.warn('Input WhatsApp não encontrado: #input-whatsapp'); }
+  if (!salarioInput) { console.warn('Input Salário não encontrado: #input-salario-anual'); }
 
   function sanitizeNumber(value) {
     if (value === null || value === undefined) return null;
@@ -152,105 +161,117 @@
 
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
-    btn.disabled = true;
-    const originalText = btn.innerText;
-    btn.innerText = 'Enviando...';
+    if (btn) btn.disabled = true;
+    const originalText = btn ? btn.innerText : 'Enviando...';
+    if (btn) btn.innerText = 'Enviando...';
 
     const fd = new FormData(form);
     const payload = buildPayload(fd);
 
-    // validação campos obrigatórios
     for (let key in payload) {
       if (payload[key] === null || payload[key] === '') {
         alert('Por favor, preencha todos os campos corretamente.');
-        btn.disabled = false;
-        btn.innerText = originalText;
+        if (btn) { btn.disabled = false; btn.innerText = originalText; }
         return;
       }
     }
 
     try {
-      /* ======= ÚNICA MUDANÇA: fetch -> sendBeacon ======= */
+      // primeiro tenta sendBeacon para não bloquear UX; se falhar, tenta fetch
       const data = JSON.stringify(payload);
-      const ok = navigator.sendBeacon(webhookUrl, new Blob([data], { type: 'text/plain' }));
-      if (ok) {
-        const redirectMsg = document.getElementById('redirect-msg');
-        redirectMsg.style.display = 'block';
-
-        setTimeout(() => {
-          try {
-            if (window.top !== window.self) {
-              window.top.location.href = obrigadoUrl;
-            } else {
-              window.location.href = obrigadoUrl;
-            }
-          } catch (err) {
-            console.warn('Redirecionamento falhou, usando fallback...', err);
-            window.location.href = obrigadoUrl;
-          }
-        }, 2000);
-
-      } else {
-        alert('Não foi possível enviar os dados.');
+      let sent = false;
+      try {
+        sent = navigator.sendBeacon(webhookUrl, new Blob([data], { type: 'application/json' }));
+      } catch (beErr) {
+        console.warn('sendBeacon lançando erro:', beErr);
+        sent = false;
       }
-      /* ================================================ */
+
+      if (!sent) {
+        // fallback: fetch (pode ser bloqueado por CORS em alguns endpoints)
+        try {
+          const resp = await fetch(webhookUrl, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: data
+          });
+          if (!resp.ok) {
+            console.warn('Fetch retornou status não-ok:', resp.status, resp.statusText);
+          }
+        } catch (ferr) {
+          console.warn('Fetch falhou (possível CORS ou rede):', ferr);
+        }
+      }
+
+      const redirectMsg = document.getElementById('redirect-msg');
+      if (redirectMsg) redirectMsg.style.display = 'block';
+      setTimeout(() => {
+        try {
+          if (window.top !== window.self) window.top.location.href = obrigadoUrl;
+          else window.location.href = obrigadoUrl;
+        } catch {
+          window.location.href = obrigadoUrl;
+        }
+      }, 2000);
 
     } catch (err) {
-      console.error('Erro de envio:', err);
+      console.error('Erro no envio:', err);
       alert('Erro de conexão. Verifique o console (F12).');
     } finally {
-      btn.disabled = false;
-      btn.innerText = originalText;
+      if (btn) { btn.disabled = false; btn.innerText = originalText; }
     }
   });
 
-  // --- Máscara WhatsApp ---
-  const whatsappInput = document.getElementById("input-whatsapp");
-  whatsappInput.addEventListener("input", function(e) {
-    let v = e.target.value.replace(/\D/g, "");
-    if (v.length > 11) v = v.slice(0,11);
-    if (v.length > 6) {
-      e.target.value = (${v.slice(0,2)}) ${v.slice(2,v.length-4)}-${v.slice(v.length-4)};
-    } else if (v.length > 2) {
-      e.target.value = (${v.slice(0,2)}) ${v.slice(2)};
-    } else if (v.length > 0) {
-      e.target.value = (${v};
-    }
-  });
+  // --- Máscara WhatsApp (corrigida) ---
+  if (whatsappInput) {
+    whatsappInput.addEventListener("input", function(e) {
+      let v = e.target.value.replace(/\D/g, ""); // somente números
+      if (v.length > 11) v = v.slice(0, 11);     // limita a 11 dígitos (DDD + 9)
+
+      const ddd = v.slice(0, 2);
+      const numero = v.slice(2);
+
+      if (!ddd) {
+        e.target.value = '';
+        return;
+      }
+
+      if (numero.length === 0) {
+        e.target.value = `(${ddd}`;
+        return;
+      }
+
+      if (numero.length <= 4) {
+        e.target.value = `(${ddd}) ${numero}`;
+        return;
+      }
+
+      if (numero.length <= 9) {
+        const parteAntesDoTraco = numero.slice(0, numero.length - 4);
+        const ult4 = numero.slice(-4);
+        e.target.value = `(${ddd}) ${parteAntesDoTraco}-${ult4}`;
+        return;
+      }
+
+      // caso alcance 9 dígitos (celular com 9)
+      const parteAntes = numero.slice(0, numero.length - 4);
+      const ultimos4 = numero.slice(-4);
+      e.target.value = `(${ddd}) ${parteAntes}-${ultimos4}`;
+    });
+  }
 
   // --- Máscara Salário BRL ---
-  const salarioInput = document.getElementById("input-salario-anual");
-  salarioInput.addEventListener("input", function(e) {
-    let v = e.target.value.replace(/\D/g,''); 
-    v = (Number(v)/100).toFixed(2) + '';
-    v = v.replace('.', ',');
-    v = v.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    e.target.value = 'R$ ' + v;
-  });
+  if (salarioInput) {
+    salarioInput.addEventListener("input", function(e) {
+      let v = e.target.value.replace(/\D/g,'');
+      if (!v) { e.target.value = ''; return; }
+      v = (Number(v)/100).toFixed(2) + '';
+      v = v.replace('.', ',');
+      v = v.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      e.target.value = 'R$ ' + v;
+    });
+  }
 
-})();
+});
 </script>
-
-<style>
-  .input-field {
-    width: 100%;
-    padding: 12px 12px 12px 42px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 15px;
-    transition: border 0.3s;
-    -moz-appearance: textfield;
-  }
-
-  .input-field:focus {
-    border: 1px solid rgb(249,115,22);
-    outline: none;
-    box-shadow: 0 0 3px rgba(249,115,22,0.6);
-  }
-
-  input[type=number]::-webkit-inner-spin-button,
-  input[type=number]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-</style>
