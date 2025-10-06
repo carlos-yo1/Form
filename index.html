@@ -196,19 +196,22 @@
     btn.innerText = originalText;
   });
 
-  // MÁSCARA WHATSAPP - IDÊNTICA AO ORIGINAL
-  const whatsappInput = document.getElementById("input-whatsapp");
-  whatsappInput.addEventListener("input", function(e) {
-    let v = e.target.value.replace(/\D/g, "");
-    if (v.length > 11) v = v.slice(0,11);
-    if (v.length > 6) {
-      e.target.value = (${v.slice(0,2)}) ${v.slice(2,v.length-4)}-${v.slice(v.length-4)};
-    } else if (v.length > 2) {
-      e.target.value = (${v.slice(0,2)}) ${v.slice(2)};
-    } else if (v.length > 0) {
-      e.target.value = (${v};
-    }
-  });
+// MÁSCARA WHATSAPP CORRIGIDA
+const whatsappInput = document.getElementById("input-whatsapp");
+
+whatsappInput.addEventListener("input", function(e) {
+  let v = e.target.value.replace(/\D/g, ""); // remove tudo que não é dígito
+  if (v.length > 11) v = v.slice(0, 11); // limite máximo
+
+  if (v.length > 6) {
+    e.target.value = `(${v.slice(0,2)}) ${v.slice(2,v.length-4)}-${v.slice(v.length-4)}`;
+  } else if (v.length > 2) {
+    e.target.value = `(${v.slice(0,2)}) ${v.slice(2)}`;
+  } else if (v.length > 0) {
+    e.target.value = `(${v}`;
+  }
+});
+
 
   // MÁSCARA SALÁRIO - IDÊNTICA AO ORIGINAL
   const salarioInput = document.getElementById("input-salario-anual");
@@ -246,4 +249,5 @@
     margin: 0;
   }
 </style>
+
 
