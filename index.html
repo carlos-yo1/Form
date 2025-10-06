@@ -1,5 +1,5 @@
 <div style="max-width: 500px; margin: auto; background: #ffffff; padding: 25px; border-radius: 8px; font-family: Arial, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-  
+
   <form id="roi-form">
 
     <!-- Nome -->
@@ -110,7 +110,6 @@
 
   </form>
 
-  
 <script>
 (function(){
   const form = document.getElementById('roi-form');
@@ -224,4 +223,27 @@
 })();
 </script>
 
+<style>
+  .input-field {
+    width: 100%;
+    padding: 12px 12px 12px 42px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: border 0.3s;
+    -moz-appearance: textfield;
+  }
+
+  .input-field:focus {
+    border: 1px solid rgb(249,115,22);
+    outline: none;
+    box-shadow: 0 0 3px rgba(249,115,22,0.6);
+  }
+
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+</style>
 
