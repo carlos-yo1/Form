@@ -111,27 +111,18 @@
   </form>
   
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+(function(){
   const form = document.getElementById('roi-form');
-  if (!form) { console.warn('Form não encontrado: #roi-form'); return; }
-
   const btn = document.getElementById('btn-calcular-roi');
-  const whatsappInput = document.getElementById('input-whatsapp');
-  const salarioInput = document.getElementById('input-salario-anual');
-  const webhookUrl = "https://webhook.site/395f323b-0696-4fcb-8010-f24efdf7c74f";
+  const webhookUrl = "https://hook.us1.make.com/6q9bv53gwg861xpgb6xv76gr5dv8wewf";
   const obrigadoUrl = "https://comunicacao.orbitlog.com.br/obrigado";
 
-  // segurança: checar elementos essenciais
-  if (!btn) { console.warn('Botão não encontrado: #btn-calcular-roi'); }
-  if (!whatsappInput) { console.warn('Input WhatsApp não encontrado: #input-whatsapp'); }
-  if (!salarioInput) { console.warn('Input Salário não encontrado: #input-salario-anual'); }
-
   function sanitizeNumber(value) {
-    if (value === null || value === undefined) return null;
+    if (value === null || value === undefined) return 0;
     let v = String(value).trim();
-    if (!v) return null;
+    if (!v) return 0;
     v = v.replace(/[^0-9.,-]/g,'');
-    if (v === '') return null;
+    if (v === '') return 0;
     if (v.indexOf('.') !== -1 && v.indexOf(',') !== -1) {
       if (v.lastIndexOf('.') < v.lastIndexOf(',')) {
         v = v.replace(/\./g,'').replace(',', '.');
@@ -142,137 +133,93 @@ document.addEventListener('DOMContentLoaded', function () {
       v = v.replace(',', '.');
     }
     const num = Number(v);
-    return Number.isFinite(num) ? num : null;
-  }
-
-  function buildPayload(fd) {
-    const salarioBRL = fd.get('salario_anual') || '';
-    return {
-      nome: fd.get('nome') || '',
-      email: fd.get('email') || '',
-      whatsapp: fd.get('whatsapp') || '',
-      analistas: sanitizeNumber(fd.get('analistas')),
-      salario_anual: salarioBRL,
-      tempo_digitando: sanitizeNumber(fd.get('tempo_digitando')),
-      pedidos_email: sanitizeNumber(fd.get('pedidos_email')),
-      taxa_erro: sanitizeNumber(fd.get('taxa_erro'))
-    };
+    return Number.isFinite(num) ? num : 0;
   }
 
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
-    if (btn) btn.disabled = true;
-    const originalText = btn ? btn.innerText : 'Enviando...';
-    if (btn) btn.innerText = 'Enviando...';
+    btn.disabled = true;
+    const originalText = btn.innerText;
+    btn.innerText = 'Enviando...';
 
     const fd = new FormData(form);
-    const payload = buildPayload(fd);
+    
+    const payload = {
+      nome: fd.get('nome'),
+      email: fd.get('email'),
+      whatsapp: fd.get('whatsapp'),
+      analistas: sanitizeNumber(fd.get('analistas')),
+      salario_anual: fd.get('salario_anual'),
+      tempo_digitando: sanitizeNumber(fd.get('tempo_digitando')),
+      pedidos_email: sanitizeNumber(fd.get('pedidos_email')),
+      taxa_erro: sanitizeNumber(fd.get('taxa_erro'))
+    };
 
-    for (let key in payload) {
-      if (payload[key] === null || payload[key] === '') {
-        alert('Por favor, preencha todos os campos corretamente.');
-        if (btn) { btn.disabled = false; btn.innerText = originalText; }
-        return;
-      }
-    }
+    console.log('Enviando dados:', payload);
 
     try {
-      // primeiro tenta sendBeacon para não bloquear UX; se falhar, tenta fetch
-      const data = JSON.stringify(payload);
-      let sent = false;
-      try {
-        sent = navigator.sendBeacon(webhookUrl, new Blob([data], { type: 'application/json' }));
-      } catch (beErr) {
-        console.warn('sendBeacon lançando erro:', beErr);
-        sent = false;
-      }
+      const resp = await fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
 
-      if (!sent) {
-        // fallback: fetch (pode ser bloqueado por CORS em alguns endpoints)
-        try {
-          const resp = await fetch(webhookUrl, {
-            method: 'POST',
-            mode: 'cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: data
-          });
-          if (!resp.ok) {
-            console.warn('Fetch retornou status não-ok:', resp.status, resp.statusText);
-          }
-        } catch (ferr) {
-          console.warn('Fetch falhou (possível CORS ou rede):', ferr);
-        }
-      }
-
+      console.log('Dados enviados!');
+      
       const redirectMsg = document.getElementById('redirect-msg');
-      if (redirectMsg) redirectMsg.style.display = 'block';
+      redirectMsg.style.display = 'block';
+      
       setTimeout(() => {
         try {
-          if (window.top !== window.self) window.top.location.href = obrigadoUrl;
-          else window.location.href = obrigadoUrl;
-        } catch {
+          if (window.top !== window.self) {
+            window.top.location.href = obrigadoUrl;
+          } else {
+            window.location.href = obrigadoUrl;
+          }
+        } catch (err) {
           window.location.href = obrigadoUrl;
         }
       }, 2000);
 
     } catch (err) {
-      console.error('Erro no envio:', err);
-      alert('Erro de conexão. Verifique o console (F12).');
-    } finally {
-      if (btn) { btn.disabled = false; btn.innerText = originalText; }
+      console.error('Erro:', err);
+      setTimeout(() => {
+        window.location.href = obrigadoUrl;
+      }, 2000);
+    }
+    
+    btn.disabled = false;
+    btn.innerText = originalText;
+  });
+
+  // MÁSCARA WHATSAPP - IDÊNTICA AO ORIGINAL
+  const whatsappInput = document.getElementById("input-whatsapp");
+  whatsappInput.addEventListener("input", function(e) {
+    let v = e.target.value.replace(/\D/g, "");
+    if (v.length > 11) v = v.slice(0,11);
+    if (v.length > 6) {
+      e.target.value = (${v.slice(0,2)}) ${v.slice(2,v.length-4)}-${v.slice(v.length-4)};
+    } else if (v.length > 2) {
+      e.target.value = (${v.slice(0,2)}) ${v.slice(2)};
+    } else if (v.length > 0) {
+      e.target.value = (${v};
     }
   });
 
-  // --- Máscara WhatsApp (corrigida) ---
-  if (whatsappInput) {
-    whatsappInput.addEventListener("input", function(e) {
-      let v = e.target.value.replace(/\D/g, ""); // somente números
-      if (v.length > 11) v = v.slice(0, 11);     // limita a 11 dígitos (DDD + 9)
+  // MÁSCARA SALÁRIO - IDÊNTICA AO ORIGINAL
+  const salarioInput = document.getElementById("input-salario-anual");
+  salarioInput.addEventListener("input", function(e) {
+    let v = e.target.value.replace(/\D/g,''); 
+    v = (Number(v)/100).toFixed(2) + '';
+    v = v.replace('.', ',');
+    v = v.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    e.target.value = 'R$ ' + v;
+  });
 
-      const ddd = v.slice(0, 2);
-      const numero = v.slice(2);
-
-      if (!ddd) {
-        e.target.value = '';
-        return;
-      }
-
-      if (numero.length === 0) {
-        e.target.value = `(${ddd}`;
-        return;
-      }
-
-      if (numero.length <= 4) {
-        e.target.value = `(${ddd}) ${numero}`;
-        return;
-      }
-
-      if (numero.length <= 9) {
-        const parteAntesDoTraco = numero.slice(0, numero.length - 4);
-        const ult4 = numero.slice(-4);
-        e.target.value = `(${ddd}) ${parteAntesDoTraco}-${ult4}`;
-        return;
-      }
-
-      // caso alcance 9 dígitos (celular com 9)
-      const parteAntes = numero.slice(0, numero.length - 4);
-      const ultimos4 = numero.slice(-4);
-      e.target.value = `(${ddd}) ${parteAntes}-${ultimos4}`;
-    });
-  }
-
-  // --- Máscara Salário BRL ---
-  if (salarioInput) {
-    salarioInput.addEventListener("input", function(e) {
-      let v = e.target.value.replace(/\D/g,'');
-      if (!v) { e.target.value = ''; return; }
-      v = (Number(v)/100).toFixed(2) + '';
-      v = v.replace('.', ',');
-      v = v.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-      e.target.value = 'R$ ' + v;
-    });
-  }
-
-});
+})();
 </script>
 
