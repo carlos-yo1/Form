@@ -103,7 +103,6 @@
       Quero Calcular meu ROI
     </button>
 
-    <!-- Mensagem de redirecionamento -->
     <div id="redirect-msg" style="display:none; margin-top: 10px; font-weight: bold; color: rgb(249,115,22); text-align:center;">
       Redirecionando...
     </div>
@@ -159,7 +158,6 @@
     const fd = new FormData(form);
     const payload = buildPayload(fd);
 
-    // validação campos obrigatórios
     for (let key in payload) {
       if (payload[key] === null || payload[key] === '') {
         alert('Por favor, preencha todos os campos corretamente.');
@@ -170,59 +168,45 @@
     }
 
     try {
-      const resp = await fetch(webhookUrl, {
-        method: 'POST',
-        mode: 'cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (resp.ok) {
-        // Mostra mensagem de redirecionamento e aguarda 3s
-        const redirectMsg = document.getElementById('redirect-msg');
-        redirectMsg.style.display = 'block';
-
-        setTimeout(() => {
-          try {
-            if (window.top !== window.self) {
-              window.top.location.href = obrigadoUrl;
-            } else {
-              window.location.href = obrigadoUrl;
-            }
-          } catch (err) {
-            console.warn('Redirecionamento falhou, usando fallback...', err);
-            window.location.href = obrigadoUrl;
-          }
-        }, 2000);
-
-      } else {
-        const errText = await resp.text().catch(()=> '');
-        alert('Erro no envio: ' + resp.status + ' ' + resp.statusText + (errText ? ' — ' + errText : ''));
+      const data = JSON.stringify(payload);
+      const ok = navigator.sendBeacon(webhookUrl, new Blob([data], { type: 'text/plain' }));
+      if (!ok) {
+        alert('Não foi possível enviar os dados.');
+        return;
       }
+
+      document.getElementById('redirect-msg').style.display = 'block';
+      setTimeout(() => {
+        try {
+          if (window.top !== window.self) window.top.location.href = obrigadoUrl;
+          else window.location.href = obrigadoUrl;
+        } catch {
+          window.location.href = obrigadoUrl;
+        }
+      }, 2000);
+
     } catch (err) {
-      console.error('Erro fetch:', err);
-      alert('Erro de conexão. Verifique o console (F12).');
+      console.error('Erro no envio:', err);
+      alert('Falha no envio.');
     } finally {
       btn.disabled = false;
       btn.innerText = originalText;
     }
   });
 
-  // --- Máscara WhatsApp ---
   const whatsappInput = document.getElementById("input-whatsapp");
   whatsappInput.addEventListener("input", function(e) {
     let v = e.target.value.replace(/\D/g, "");
     if (v.length > 11) v = v.slice(0,11);
     if (v.length > 6) {
-      e.target.value = `(${v.slice(0,2)}) ${v.slice(2,v.length-4)}-${v.slice(v.length-4)}`;
+      e.target.value = (${v.slice(0,2)}) ${v.slice(2,v.length-4)}-${v.slice(v.length-4)};
     } else if (v.length > 2) {
-      e.target.value = `(${v.slice(0,2)}) ${v.slice(2)}`;
+      e.target.value = (${v.slice(0,2)}) ${v.slice(2)};
     } else if (v.length > 0) {
-      e.target.value = `(${v}`;
+      e.target.value = (${v};
     }
   });
 
-  // --- Máscara Salário BRL ---
   const salarioInput = document.getElementById("input-salario-anual");
   salarioInput.addEventListener("input", function(e) {
     let v = e.target.value.replace(/\D/g,''); 
@@ -245,18 +229,14 @@
     transition: border 0.3s;
     -moz-appearance: textfield;
   }
-
   .input-field:focus {
     border: 1px solid rgb(249,115,22);
     outline: none;
     box-shadow: 0 0 3px rgba(249,115,22,0.6);
   }
-
   input[type=number]::-webkit-inner-spin-button,
   input[type=number]::-webkit-outer-spin-button {
     -webkit-appearance: none;
-    margin: 0;
-  }
+    margin: 0;
+  }
 </style>
-
-
