@@ -23,7 +23,7 @@
           <path d="M4 4l8 8 8-8"/>
         </svg>
       </span>
-      <input type="email" id="input-email" name="email" required placeholder="Ex: seu.email@email.com" class="input-field">
+      <input type="email" id="input-email" name="email" required placeholder="Ex: nome@empresa.com.br" class="input-field">
     </div>
 
     <!-- WhatsApp -->
@@ -103,7 +103,6 @@
       Quero Calcular meu ROI
     </button>
 
-    <!-- Mensagem de redirecionamento -->
     <div id="redirect-msg" style="display:none; margin-top: 10px; font-weight: bold; color: rgb(249,115,22); text-align:center;">
       Redirecionando...
     </div>
@@ -112,6 +111,18 @@
 
 <script>
 (function(){
+  const blockedDomains = [
+    "gmail.com","hotmail.com","outlook.com","live.com","yahoo.com",
+    "icloud.com","bol.com.br","uol.com.br","terra.com.br",
+    "proton.me","protonmail.com"
+  ];
+
+  function isProfessionalEmail(email) {
+    if (!email || !email.includes("@")) return false;
+    const domain = email.split("@")[1].toLowerCase();
+    return !blockedDomains.includes(domain);
+  }
+
   const form = document.getElementById('roi-form');
   const btn = document.getElementById('btn-calcular-roi');
   const webhookUrl = "https://hook.us1.make.com/6q9bv53gwg861xpgb6xv76gr5dv8wewf";
@@ -138,12 +149,19 @@
 
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
+
+    const email = document.getElementById("input-email").value.trim();
+    if (!isProfessionalEmail(email)) {
+      alert("Por favor, utilize um e-mail profissional (ex: nome@empresa.com.br).");
+      return;
+    }
+
     btn.disabled = true;
     const originalText = btn.innerText;
     btn.innerText = 'Enviando...';
 
     const fd = new FormData(form);
-    
+
     const payload = {
       nome: fd.get('nome'),
       email: fd.get('email'),
@@ -158,10 +176,10 @@
     console.log('Enviando dados:', payload);
 
     try {
-      const resp = await fetch(webhookUrl, {
+      await fetch(webhookUrl, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
@@ -169,10 +187,8 @@
       });
 
       console.log('Dados enviados!');
-      
-      const redirectMsg = document.getElementById('redirect-msg');
-      redirectMsg.style.display = 'block';
-      
+      document.getElementById('redirect-msg').style.display = 'block';
+
       setTimeout(() => {
         try {
           if (window.top !== window.self) {
@@ -191,32 +207,29 @@
         window.location.href = obrigadoUrl;
       }, 2000);
     }
-    
+
     btn.disabled = false;
     btn.innerText = originalText;
   });
 
-// MÁSCARA WHATSAPP CORRIGIDA
-const whatsappInput = document.getElementById("input-whatsapp");
+  // MÁSCARA WHATSAPP
+  const whatsappInput = document.getElementById("input-whatsapp");
+  whatsappInput.addEventListener("input", function(e) {
+    let v = e.target.value.replace(/\D/g, "");
+    if (v.length > 11) v = v.slice(0, 11);
+    if (v.length > 6) {
+      e.target.value = `(${v.slice(0,2)}) ${v.slice(2,v.length-4)}-${v.slice(v.length-4)}`;
+    } else if (v.length > 2) {
+      e.target.value = `(${v.slice(0,2)}) ${v.slice(2)}`;
+    } else if (v.length > 0) {
+      e.target.value = `(${v}`;
+    }
+  });
 
-whatsappInput.addEventListener("input", function(e) {
-  let v = e.target.value.replace(/\D/g, ""); // remove tudo que não é dígito
-  if (v.length > 11) v = v.slice(0, 11); // limite máximo
-
-  if (v.length > 6) {
-    e.target.value = `(${v.slice(0,2)}) ${v.slice(2,v.length-4)}-${v.slice(v.length-4)}`;
-  } else if (v.length > 2) {
-    e.target.value = `(${v.slice(0,2)}) ${v.slice(2)}`;
-  } else if (v.length > 0) {
-    e.target.value = `(${v}`;
-  }
-});
-
-
-  // MÁSCARA SALÁRIO - IDÊNTICA AO ORIGINAL
+  // MÁSCARA SALÁRIO
   const salarioInput = document.getElementById("input-salario-anual");
   salarioInput.addEventListener("input", function(e) {
-    let v = e.target.value.replace(/\D/g,''); 
+    let v = e.target.value.replace(/\D/g,'');
     v = (Number(v)/100).toFixed(2) + '';
     v = v.replace('.', ',');
     v = v.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -249,5 +262,3 @@ whatsappInput.addEventListener("input", function(e) {
     margin: 0;
   }
 </style>
-
-
